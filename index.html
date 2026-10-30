@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="AktivitasKu - Personal Daily Activity and Productivity Dashboard">
+  <title>AktivitasKu | Personal Work Tracker</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar" id="sidebar">
+      <a class="brand" href="#" data-page="dashboard">
+        <span class="brand-mark"><i data-lucide="chart-no-axes-combined"></i></span>
+        <span><strong>AktivitasKu</strong><small>PERSONAL WORK TRACKER</small></span>
+      </a>
+      <div class="side-label">MENU UTAMA</div>
+      <nav class="nav-menu">
+        <button class="nav-link active" data-page="dashboard"><i data-lucide="layout-dashboard"></i>Dashboard</button>
+        <button class="nav-link" data-page="activities"><i data-lucide="clipboard-list"></i>Aktivitas Harian</button>
+        <button class="nav-link" data-page="calendar"><i data-lucide="calendar-days"></i>Kalender</button>
+        <button class="nav-link" data-page="statistics"><i data-lucide="chart-column-increasing"></i>Statistik</button>
+        <button class="nav-link" data-page="notes"><i data-lucide="notebook-pen"></i>Catatan Pembelajaran</button>
+      </nav>
+      <div class="sidebar-bottom">
+        <div class="privacy-card"><i data-lucide="shield-check"></i><div><strong>Ruang pribadi</strong><small>Data tersimpan di browser ini</small></div></div>
+        <button class="nav-link" data-page="settings"><i data-lucide="settings"></i>Pengaturan</button>
+        <div class="profile-mini"><div class="avatar">AK</div><div><strong>Pengguna</strong><small>Personal account</small></div><span class="online-dot"></span></div>
+      </div>
+    </aside>
+
+    <main class="main-area">
+      <header class="topbar">
+        <div class="topbar-left"><button class="icon-btn mobile-menu" id="mobileMenu" aria-label="Buka menu"><i data-lucide="menu"></i></button><div class="breadcrumb">Workspace <span>/</span> <strong id="crumb">Dashboard</strong></div></div>
+        <div class="topbar-right"><span class="today-chip"><i data-lucide="calendar"></i><span id="todayLabel"></span></span><div class="top-avatar">AK</div></div>
+      </header>
+
+      <section class="page active" id="page-dashboard">
+        <div class="welcome-row">
+          <div><div class="eyebrow">PERSONAL WORKSPACE</div><h1>Selamat datang kembali! <span>👋</span></h1><p>Pantau aktivitas dan perkembangan produktivitasmu hari ini.</p></div>
+          <button class="btn btn-primary" data-open-form><i data-lucide="plus"></i>Tambah Aktivitas</button>
+        </div>
+        <div class="stat-grid">
+          <article class="stat-card"><div class="stat-top"><span>Total Aktivitas</span><span class="stat-icon blue"><i data-lucide="clipboard-list"></i></span></div><div class="stat-value" id="totalStat">0</div><div class="stat-foot"><span class="muted">Aktivitas tercatat</span></div></article>
+          <article class="stat-card"><div class="stat-top"><span>Aktivitas Selesai</span><span class="stat-icon green"><i data-lucide="check-circle-2"></i></span></div><div class="stat-value" id="doneStat">0</div><div class="stat-foot"><span class="positive" id="donePercent">0%</span><span class="muted">dari seluruh aktivitas</span></div></article>
+          <article class="stat-card"><div class="stat-top"><span>Dalam Proses</span><span class="stat-icon amber"><i data-lucide="clock-3"></i></span></div><div class="stat-value" id="progressStat">0</div><div class="stat-foot"><span class="muted">Perlu ditindaklanjuti</span></div></article>
+          <article class="stat-card"><div class="stat-top"><span>Total Durasi</span><span class="stat-icon violet"><i data-lucide="timer"></i></span></div><div class="stat-value" id="durationStat">0j</div><div class="stat-foot"><span class="muted">Akumulasi waktu tercatat</span></div></article>
+        </div>
+
+        <div class="content-grid">
+          <article class="panel chart-panel">
+            <div class="panel-heading"><div><h2>Produktivitas</h2><p>Jumlah aktivitas berdasarkan periode</p></div><select id="dashboardPeriod" class="select-control"><option value="week">7 hari terakhir</option><option value="month">30 hari terakhir</option><option value="year">12 bulan terakhir</option></select></div>
+            <div class="chart-wrap"><canvas id="productivityChart"></canvas></div>
+          </article>
+          <article class="panel category-panel">
+            <div class="panel-heading"><div><h2>Kategori Aktivitas</h2><p>Distribusi aktivitas tercatat</p></div></div>
+            <div class="donut-wrap"><canvas id="categoryChart"></canvas><div class="donut-center"><strong id="categoryTotal">0</strong><span>Aktivitas</span></div></div>
+            <div id="categoryLegend" class="category-legend"></div>
+          </article>
+        </div>
+
+        <article class="panel recent-panel">
+          <div class="panel-heading"><div><h2>Aktivitas Terbaru</h2><p>Catatan pekerjaan yang terakhir ditambahkan</p></div><button class="text-btn" data-page="activities">Lihat semua <i data-lucide="arrow-right"></i></button></div>
+          <div class="table-scroll"><table><thead><tr><th>AKTIVITAS</th><th>TANGGAL</th><th>KATEGORI</th><th>DURASI</th><th>STATUS</th></tr></thead><tbody id="recentRows"></tbody></table></div>
+        </article>
+        <div class="demo-note"><i data-lucide="info"></i><span>Ini adalah demo awal. Data contoh dapat diubah atau dihapus. Data yang kamu tambahkan tersimpan di browser perangkat ini.</span></div>
+      </section>
+
+      <section class="page" id="page-activities">
+        <div class="page-heading"><div><div class="eyebrow">REKAM KEGIATAN</div><h1>Aktivitas Harian</h1><p>Catat pekerjaan yang telah kamu lakukan.</p></div><button class="btn btn-primary" data-open-form><i data-lucide="plus"></i>Tambah Aktivitas</button></div>
+        <article class="panel">
+          <div class="toolbar"><div class="search-box"><i data-lucide="search"></i><input id="searchActivity" placeholder="Cari nama atau deskripsi aktivitas..."></div><div class="toolbar-filters"><input type="date" id="filterDate" class="select-control"><select id="filterCategory" class="select-control"><option value="">Semua kategori</option><option>Administrasi</option><option>Operasional</option><option>Pelayanan</option><option>Pengarsipan</option><option>Pembelajaran</option><option>Lainnya</option></select><select id="filterStatus" class="select-control"><option value="">Semua status</option><option>Selesai</option><option>Dalam Proses</option><option>Belum Selesai</option></select></div></div>
+          <div class="table-scroll"><table><thead><tr><th>AKTIVITAS</th><th>TANGGAL</th><th>WAKTU</th><th>KATEGORI</th><th>STATUS</th><th>AKSI</th></tr></thead><tbody id="activityRows"></tbody></table></div>
+          <div class="table-footer"><span id="activityCount">0 aktivitas</span><button class="btn btn-outline btn-small" id="exportAll"><i data-lucide="file-spreadsheet"></i>Export Excel</button></div>
+        </article>
+      </section>
+
+      <section class="page" id="page-calendar">
+        <div class="page-heading"><div><div class="eyebrow">JADWAL & RIWAYAT</div><h1>Kalender Aktivitas</h1><p>Lihat catatan aktivitas berdasarkan tanggal.</p></div></div>
+        <article class="panel calendar-panel"><div class="calendar-head"><button class="icon-btn" id="prevMonth"><i data-lucide="chevron-left"></i></button><h2 id="calendarMonth"></h2><button class="icon-btn" id="nextMonth"><i data-lucide="chevron-right"></i></button></div><div class="calendar-grid" id="calendarGrid"></div></article>
+        <article class="panel selected-day-panel"><div class="panel-heading"><div><h2 id="selectedDateTitle">Aktivitas pada tanggal</h2><p>Pilih tanggal pada kalender untuk melihat detail.</p></div></div><div id="selectedDayList" class="selected-day-list"></div></article>
+      </section>
+
+      <section class="page" id="page-statistics">
+        <div class="page-heading"><div><div class="eyebrow">ANALISIS PRODUKTIVITAS</div><h1>Statistik Aktivitas</h1><p>Evaluasi perkembangan aktivitas berdasarkan periode.</p></div><button class="btn btn-outline" id="exportStats"><i data-lucide="file-spreadsheet"></i>Export Excel</button></div>
+        <div class="stat-grid compact-stats"><article class="stat-card"><div class="stat-top"><span>Total aktivitas</span><span class="stat-icon blue"><i data-lucide="list-checks"></i></span></div><div class="stat-value" id="statsTotal">0</div></article><article class="stat-card"><div class="stat-top"><span>Rata-rata per hari aktif</span><span class="stat-icon green"><i data-lucide="trending-up"></i></span></div><div class="stat-value" id="statsAverage">0</div></article><article class="stat-card"><div class="stat-top"><span>Total durasi</span><span class="stat-icon violet"><i data-lucide="timer"></i></span></div><div class="stat-value" id="statsDuration">0j</div></article></div>
+        <article class="panel chart-panel"><div class="panel-heading"><div><h2>Tren Aktivitas</h2><p>Perbandingan jumlah aktivitas</p></div><select id="statsPeriod" class="select-control"><option value="week">Harian (7 hari)</option><option value="month">Mingguan (30 hari)</option><option value="year">Bulanan (12 bulan)</option></select></div><div class="chart-wrap tall"><canvas id="statsChart"></canvas></div></article>
+        <article class="panel"><div class="panel-heading"><div><h2>Ringkasan Kategori</h2><p>Jumlah aktivitas pada setiap kategori</p></div></div><div id="categorySummary" class="summary-list"></div></article>
+      </section>
+
+      <section class="page" id="page-notes">
+        <div class="page-heading"><div><div class="eyebrow">JURNAL PENGALAMAN</div><h1>Catatan Pembelajaran</h1><p>Simpan ilmu, pengalaman, dan hal baru yang kamu pelajari.</p></div><button class="btn btn-primary" id="addNote"><i data-lucide="plus"></i>Tambah Catatan</button></div>
+        <div id="notesList" class="notes-grid"></div>
+      </section>
+
+      <section class="page" id="page-settings">
+        <div class="page-heading"><div><div class="eyebrow">PREFERENSI</div><h1>Pengaturan</h1><p>Kelola data demo dan preferensi aplikasi.</p></div></div>
+        <article class="panel settings-card"><div class="settings-row"><div><h3>Penyimpanan lokal</h3><p>Data aktivitas dan catatan disimpan di browser perangkat ini menggunakan LocalStorage.</p></div><span class="settings-status"><i data-lucide="shield-check"></i> Aktif</span></div><div class="settings-row"><div><h3>Ekspor seluruh data</h3><p>Unduh aktivitas dan catatan dalam format Excel (.xlsx).</p></div><button class="btn btn-outline" id="exportSettings"><i data-lucide="download"></i>Export data</button></div><div class="settings-row danger-row"><div><h3>Reset data demo</h3><p>Kembalikan daftar aktivitas dan catatan ke data contoh awal.</p></div><button class="btn btn-danger-outline" id="resetData"><i data-lucide="refresh-ccw"></i>Reset demo</button></div></article>
+        <div class="demo-note"><i data-lucide="alert-circle"></i><span>Jangan gunakan data nasabah, nomor rekening, kredensial, atau informasi internal/rahasia. Repository dan website demo ini bersifat publik.</span></div>
+      </section>
+    </main>
+  </div>
+
+  <div class="modal-backdrop" id="activityModal">
+    <div class="modal">
+      <div class="modal-head"><div><div class="eyebrow">FORMULIR KEGIATAN</div><h2 id="modalTitle">Tambah Aktivitas</h2></div><button class="icon-btn" id="closeModal" aria-label="Tutup"><i data-lucide="x"></i></button></div>
+      <form id="activityForm">
+        <input type="hidden" id="editId">
+        <label>Nama Aktivitas <span>*</span><input id="activityName" required maxlength="100" placeholder="Contoh: Rekapitulasi dokumen"></label>
+        <div class="form-row"><label>Tanggal <span>*</span><input type="date" id="activityDate" required></label><label>Kategori <span>*</span><select id="activityCategory" required><option value="">Pilih kategori</option><option>Administrasi</option><option>Operasional</option><option>Pelayanan</option><option>Pengarsipan</option><option>Pembelajaran</option><option>Lainnya</option></select></label></div>
+        <div class="form-row"><label>Jam Mulai<input type="time" id="startTime"></label><label>Jam Selesai<input type="time" id="endTime"></label></div>
+        <label>Status<select id="activityStatus"><option>Selesai</option><option>Dalam Proses</option><option>Belum Selesai</option></select></label>
+        <label>Deskripsi<textarea id="activityDescription" rows="3" placeholder="Ceritakan secara umum kegiatan yang dilakukan..."></textarea></label>
+        <label>Catatan Pembelajaran <small>(opsional)</small><textarea id="activityLearning" rows="2" placeholder="Hal baru yang dipelajari..."></textarea></label>
+        <div class="form-actions"><button type="button" class="btn btn-outline" id="cancelModal">Batal</button><button type="submit" class="btn btn-primary"><i data-lucide="save"></i>Simpan Aktivitas</button></div>
+      </form>
+    </div>
+  </div>
+
+  <div class="modal-backdrop" id="noteModal"><div class="modal modal-small"><div class="modal-head"><div><div class="eyebrow">JURNAL PRIBADI</div><h2>Tambah Catatan</h2></div><button class="icon-btn" id="closeNote"><i data-lucide="x"></i></button></div><form id="noteForm"><label>Judul Catatan<input id="noteTitle" required maxlength="90" placeholder="Apa yang kamu pelajari?"></label><label>Tanggal<input type="date" id="noteDate" required></label><label>Isi Catatan<textarea id="noteBody" rows="5" required placeholder="Tuliskan pengalaman atau pembelajaranmu..."></textarea></label><div class="form-actions"><button type="button" class="btn btn-outline" id="cancelNote">Batal</button><button class="btn btn-primary" type="submit">Simpan Catatan</button></div></form></div></div>
+  <div class="toast" id="toast"></div>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="script.js"></script>
+</body>
+</html>
